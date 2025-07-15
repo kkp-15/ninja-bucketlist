@@ -1,0 +1,134 @@
+<!DOCTYPE html><html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>やりたい事リスト</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background-color: #f0f8ff;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      display: grid;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      max-width: 500px;
+      margin-inline: auto;
+    }
+    input, textarea, select, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    #list {
+      max-width: 500px;
+      margin-inline: auto;
+    }
+    .item {
+      background: white;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .item.done {
+      background: #d0ffd0;
+    }
+    .buttons {
+      margin-top: 0.5rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .summary {
+      text-align: center;
+      margin-top: 2rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>やりたい事リスト</h1>
+  <form id="form">
+    <input type="text" id="title" placeholder="やりたいこと" required>
+    <input type="text" id="category" placeholder="ジャンル (例: 旅行, 学習)" required>
+    <input type="number" id="hours" placeholder="所要時間 (時間)" required>
+    <input type="date" id="deadline">
+    <textarea id="memo" placeholder="メモ（自由入力）"></textarea>
+    <button type="submit">追加</button>
+  </form>  <div class="summary" id="summary"></div>
+  <div id="list"></div>  <script>
+    const form = document.getElementById("form");
+    const listEl = document.getElementById("list");
+    const summaryEl = document.getElementById("summary");
+    let list = JSON.parse(localStorage.getItem("bucketList")) || [];
+
+    function save() {
+      localStorage.setItem("bucketList", JSON.stringify(list));
+    }
+
+    function render() {
+      listEl.innerHTML = "";
+      let totalHours = 0;
+      let doneHours = 0;
+      list.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "item" + (item.done ? " done" : "");
+        div.innerHTML = `
+          <strong>${item.title}</strong><br>
+          ジャンル: ${item.category}<br>
+          所要時間: ${item.hours} 時間<br>
+          期限: ${item.deadline || "(未設定)"}<br>
+          メモ: ${item.memo || "なし"}
+        `;
+        const btns = document.createElement("div");
+        btns.className = "buttons";
+        const doneBtn = document.createElement("button");
+        doneBtn.textContent = item.done ? "未完了に戻す" : "達成";
+        doneBtn.onclick = () => {
+          list[index].done = !list[index].done;
+          save();
+          render();
+        };
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "削除";
+        delBtn.onclick = () => {
+          if (confirm("本当に削除しますか？")) {
+            list.splice(index, 1);
+            save();
+            render();
+          }
+        };
+        btns.appendChild(doneBtn);
+        btns.appendChild(delBtn);
+        div.appendChild(btns);
+        listEl.appendChild(div);
+
+        totalHours += parseFloat(item.hours);
+        if (item.done) doneHours += parseFloat(item.hours);
+      });
+      summaryEl.textContent = `総時間: ${totalHours} 時間 ／ 達成済み: ${doneHours} 時間`;
+    }
+
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const newItem = {
+        title: form.title.value,
+        category: form.category.value,
+        hours: form.hours.value,
+        deadline: form.deadline.value,
+        memo: form.memo.value,
+        done: false
+      };
+      list.push(newItem);
+      save();
+      render();
+      form.reset();
+    };
+
+    render();
+  </script></body>
+</html>
