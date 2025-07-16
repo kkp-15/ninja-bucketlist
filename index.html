@@ -133,7 +133,9 @@
       data.push({ title, category: "", age: "", memo: "", done: false });
       saveData();
       quickTitle.value = "";
+      alert(`「${title}」を追加しました！「未分類」に表示されます`);
       render();
+      document.getElementById("unclassified")?.scrollIntoView({ behavior: 'smooth' });
     }
 
     function render() {
@@ -148,6 +150,7 @@
       sortedKeys.forEach((decade) => {
         const section = document.createElement("details");
         section.open = true;
+        section.id = (decade === "未分類") ? "unclassified" : "";
         section.innerHTML = `<summary>${decade}代（${grouped[decade].length}件）</summary>`;
         grouped[decade].forEach(({ item, index }) => {
           const div = document.createElement("div");
