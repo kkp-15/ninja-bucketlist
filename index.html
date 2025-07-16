@@ -57,6 +57,10 @@
       background: #cce5cc;
       text-decoration: line-through;
     }
+    .actions button {
+      width: auto;
+      margin-right: 5px;
+    }
   </style>
 </head>
 <body>
@@ -88,6 +92,31 @@
       render();
     }
 
+    function editItem(index) {
+      const newTitle = prompt("新しいタイトルを入力してください：", data[index].title);
+      if (newTitle !== null) data[index].title = newTitle;
+      const newAge = prompt("やる年齢を入力してください：", data[index].age);
+      if (newAge !== null && !isNaN(newAge)) data[index].age = parseInt(newAge);
+      const newMemo = prompt("メモを編集してください：", data[index].memo);
+      if (newMemo !== null) data[index].memo = newMemo;
+      localStorage.setItem("bucketData", JSON.stringify(data));
+      render();
+    }
+
+    function deleteItem(index) {
+      if (confirm("この項目を削除しますか？")) {
+        data.splice(index, 1);
+        localStorage.setItem("bucketData", JSON.stringify(data));
+        render();
+      }
+    }
+
+    function shareItem(item) {
+      const text = `やりたいこと：${item.title}\n${item.memo ? `メモ：${item.memo}\n` : ""}年齢：${item.age}\n#タイムバケット #やりたいことリスト\nhttps://kkp-15.github.io/`;
+      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+
     function render() {
       const bucket = document.getElementById("bucket");
       bucket.innerHTML = "";
@@ -102,13 +131,19 @@
         const section = document.createElement("details");
         section.open = true;
         section.innerHTML = `<summary>${decade}代（${grouped[decade].length}件）</summary>`;
+        grouped[decade].sort((a, b) => a.item.age - b.item.age);
         grouped[decade].forEach(({ item, index }) => {
           const div = document.createElement("div");
           div.className = "item" + (item.done ? " done" : "");
           div.innerHTML = `
             <strong>${item.title}</strong><br>
             ${item.memo ? `<small>メモ：${item.memo}</small><br>` : ""}
-            <button onclick="toggleDone(${index})">${item.done ? "未達成に戻す" : "達成"}</button>
+            <div class="actions">
+              <button onclick="toggleDone(${index})">${item.done ? "未達成に戻す" : "達成"}</button>
+              <button onclick="editItem(${index})">編集</button>
+              <button onclick="deleteItem(${index})">削除</button>
+              <button onclick='shareItem(${JSON.stringify(item)})'>シェア</button>
+            </div>
           `;
           section.appendChild(div);
         });
