@@ -81,11 +81,6 @@
       width: 90%;
       max-width: 400px;
     }
-    .footer {
-      text-align: center;
-      margin-top: 2rem;
-      color: #666;
-    }
   </style>
 </head>
 <body>
@@ -104,8 +99,12 @@
       <button onclick="saveEdit()">保存</button>
       <button onclick="closeModal()">キャンセル</button>
     </div>
-  </div>  <div class="footer">
-    @kkp_webninja
+  </div>  <div style="text-align: center; margin-top: 40px;">
+    <a href="https://x.com/kkp_webninja" target="_blank"
+       style="display: inline-block; padding: 10px 20px; background-color: #1da1f2; color: white;
+       border-radius: 999px; text-decoration: none; font-weight: bold;">
+      情報の巻物はこちら → @kkp_webninja
+    </a>
   </div>  <script>
     let data = JSON.parse(localStorage.getItem("bucketData") || "[]");
     let editIndex = null;
