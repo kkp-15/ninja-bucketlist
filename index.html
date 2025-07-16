@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>やりたい事リスト</title>
+  <title>やりたい事リスト（ジャンル選択＋年代別）</title>
   <style>
     body {
       font-family: sans-serif;
@@ -104,7 +104,7 @@
   </style>
 </head>
 <body>
-  <h1>やりたい事リスト</h1>  <div class="quote-box" id="quoteBox"></div>  <div class="quick-form">
+  <h1>やりたい事リスト（ジャンル選択＋年代別）</h1>  <div class="quote-box" id="quoteBox"></div>  <div class="quick-form">
     <label for="quickTitle">やりたいこと（まずはこれだけでOK）</label>
     <input type="text" id="quickTitle" placeholder="例：屋久島に行く">
     <button onclick="quickAdd()">追加</button>
@@ -134,11 +134,13 @@
       saveData();
       quickTitle.value = "";
       alert(`「${title}」を追加しました！「未分類」に表示されます`);
-      render();
-      document.getElementById("unclassified")?.scrollIntoView({ behavior: 'smooth' });
+      render(() => {
+        const unclassified = document.getElementById("unclassified");
+        if (unclassified) unclassified.scrollIntoView({ behavior: 'smooth' });
+      });
     }
 
-    function render() {
+    function render(callback) {
       bucketList.innerHTML = "";
       const grouped = {};
       data.forEach((item, index) => {
@@ -150,7 +152,7 @@
       sortedKeys.forEach((decade) => {
         const section = document.createElement("details");
         section.open = true;
-        section.id = (decade === "未分類") ? "unclassified" : "";
+        if (decade === "未分類") section.id = "unclassified";
         section.innerHTML = `<summary>${decade}代（${grouped[decade].length}件）</summary>`;
         grouped[decade].forEach(({ item, index }) => {
           const div = document.createElement("div");
@@ -189,6 +191,7 @@
     });
     bucketList.appendChild(section);
   });
+  if (callback) callback();
 }
 
 function updateField(index, field, value) {
