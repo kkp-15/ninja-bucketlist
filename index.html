@@ -199,7 +199,7 @@
       localStorage.setItem("bucketList", JSON.stringify(list));
     }
 
-    function render() {
+    function render(scrollY = null) {
       buckets.innerHTML = "";
       let total = 0, done = 0;
       const bucketItems = {};
@@ -222,9 +222,10 @@
         const doneBtn = document.createElement("button");
         doneBtn.textContent = item.done ? "未完了に戻す" : "達成";
         doneBtn.onclick = () => {
+          const y = window.scrollY;
           list[i].done = !list[i].done;
           save();
-          render();
+          render(y);
         };
         const delBtn = document.createElement("button");
         delBtn.textContent = "削除";
@@ -232,18 +233,18 @@
           if (confirm("削除してよいですか？")) {
             list.splice(i, 1);
             save();
-            render();
+            render(window.scrollY);
           }
         };
         btns.appendChild(doneBtn);
         btns.appendChild(delBtn);
         div.appendChild(btns);
 
-        if (item.done) {
+        if (item.done || i === list.length - 1) {
           const congrats = document.createElement("div");
           congrats.className = "congrats";
-          const text = encodeURIComponent(`✅「${item.title}」を達成しました！ありがとう！\n#やりたいことリスト #タイムバケット #達成報告 #感謝`);
-          congrats.innerHTML = `🎉 達成おめでとうございます！<br><a href='https://twitter.com/intent/tweet?text=${text}' target='_blank'>📣 Xでシェア</a>`;
+          const text = encodeURIComponent(`✅「${item.title}」を${item.done ? '達成' : '登録'}しました！ありがとう！\n#やりたいことリスト #タイムバケット #感謝`);
+          congrats.innerHTML = `🎉 ${item.done ? '達成おめでとうございます！' : '追加されました！'}<br><a href='https://twitter.com/intent/tweet?text=${text}' target='_blank'>📣 Xでシェア</a>`;
           div.appendChild(congrats);
         }
 
@@ -264,6 +265,10 @@
       });
 
       summary.textContent = `総時間: ${total} 時間 ／ 達成済み: ${done} 時間`;
+
+      if (scrollY !== null) {
+        window.scrollTo(0, scrollY);
+      }
     }
 
     ageForm.onsubmit = (e) => {
@@ -291,7 +296,7 @@
       };
       list.push(item);
       save();
-      render();
+      render(window.scrollY);
       form.reset();
     };
 
