@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>やりたい事リスト（ジャンル選択＋年代別）</title>
+  <title>やりたい事リスト</title>
   <style>
     body {
       font-family: sans-serif;
@@ -51,6 +51,13 @@
     }
     .item.done {
       background: #d0ffd0;
+    }
+    .highlight {
+      animation: flash 1s ease-in-out;
+    }
+    @keyframes flash {
+      0% { background-color: #ffff99; }
+      100% { background-color: #f9f9f9; }
     }
     .buttons {
       margin-top: 0.5rem;
@@ -104,9 +111,10 @@
   </style>
 </head>
 <body>
-  <h1>やりたい事リスト（ジャンル選択＋年代別）</h1>  <div class="quote-box" id="quoteBox"></div>  <div class="quick-form">
+  <h1>やりたい事リスト</h1>
+  <div class="quote-box" id="quoteBox"></div>  <div class="quick-form">
     <label for="quickTitle">やりたいこと（まずはこれだけでOK）</label>
-    <input type="text" id="quickTitle" placeholder="例：屋久島に行く">
+    <input type="text" id="quickTitle" placeholder="例：モルディブに行く">
     <button onclick="quickAdd()">追加</button>
   </div>  <div class="bucket-section" id="bucketList"></div>  <footer>
     <p><a href="https://twitter.com/kkp_webninja" target="_blank">@kkp_webninja をフォロー</a><br><small>毎日ちょっとずつ夢に近づくヒントをお届け</small></p>
@@ -115,7 +123,7 @@
     const quickTitle = document.getElementById("quickTitle");
     const bucketList = document.getElementById("bucketList");
     const quotes = [
-      "やりたいことは、思いついた瞬間が一番熱い。",
+      "今日が一番若い日。",
       "書き出すことで夢は一歩近づく。",
       "思った時がタイミング。即追加！"
     ];
@@ -135,12 +143,12 @@
       quickTitle.value = "";
       alert(`「${title}」を追加しました！「未分類」に表示されます`);
       render(() => {
-        const unclassified = document.getElementById("unclassified");
-        if (unclassified) unclassified.scrollIntoView({ behavior: 'smooth' });
-      });
+        const target = document.querySelector("#unclassified");
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      }, title);
     }
 
-    function render(callback) {
+    function render(callback, highlightTitle = null) {
       bucketList.innerHTML = "";
       const grouped = {};
       data.forEach((item, index) => {
@@ -156,7 +164,7 @@
         section.innerHTML = `<summary>${decade}代（${grouped[decade].length}件）</summary>`;
         grouped[decade].forEach(({ item, index }) => {
           const div = document.createElement("div");
-          div.className = "item" + (item.done ? " done" : "");
+          div.className = "item" + (item.done ? " done" : "") + (item.title === highlightTitle ? " highlight" : "");
           div.innerHTML = `
             <strong>${item.title}</strong><br>
             ${item.category ? `ジャンル：${item.category}<br>` : ""}
