@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>やりたい事リスト</title>
+  <title>やりたい事リスト - タイムバケット</title>
   <style>
     body {
       font-family: sans-serif;
@@ -10,16 +10,13 @@
       padding: 1rem;
       background-color: #f0f8ff;
     }
-    h1 {
+    h1, h2 {
       text-align: center;
     }
-    form {
-      display: grid;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      max-width: 500px;
-      margin-inline: auto;
-      background: #ffffff;
+    form, .bucket-section {
+      max-width: 600px;
+      margin: 1rem auto;
+      background: white;
       padding: 1rem;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -34,10 +31,7 @@
       border: 1px solid #ccc;
       width: 100%;
       box-sizing: border-box;
-    }
-    small {
-      font-size: 0.8rem;
-      color: #666;
+      margin-bottom: 0.5rem;
     }
     button {
       background: #007acc;
@@ -48,16 +42,11 @@
     button:hover {
       background: #005fa3;
     }
-    #list {
-      max-width: 500px;
-      margin-inline: auto;
-    }
     .item {
-      background: white;
-      padding: 1rem;
+      background: #f9f9f9;
+      padding: 0.8rem;
       margin-bottom: 0.5rem;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      border-radius: 5px;
     }
     .item.done {
       background: #d0ffd0;
@@ -67,111 +56,170 @@
       display: flex;
       gap: 0.5rem;
     }
-    .summary {
-      text-align: center;
-      margin-top: 2rem;
+    summary {
       font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .summary-text {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
-  <h1>やりたい事リスト</h1>
-  <form id="form">
-    <div>
-      <label for="title">やりたいこと</label>
-      <input type="text" id="title" placeholder="例：京都の紅葉を見に行く" required>
-    </div>
-    <div>
-      <label for="category">ジャンル</label>
-      <select id="category" required>
-        <option value="">選んでください</option>
-        <option value="旅行">✈️ 旅行</option>
-        <option value="学習">📘 学習</option>
-        <option value="健康">🏃 健康</option>
-        <option value="趣味">🎨 趣味</option>
-        <option value="副業">💼 副業</option>
-        <option value="その他">🔧 その他</option>
-      </select>
-    </div>
-    <div>
-      <label for="hours">所要時間（時間）</label>
-      <input type="number" id="hours" min="0.5" step="0.5" placeholder="例：2" required>
-      <small>おおよその目安でOKです（例：0.5／2／10など）</small>
-    </div>
-    <div>
-      <label for="deadline">期限</label>
-      <input type="date" id="deadline">
-    </div>
-    <div>
-      <label for="memo">メモ</label>
-      <textarea id="memo" placeholder="例：いつか家族でやりたい／費用が3万円くらいかかる"></textarea>
-    </div>
-    <button type="submit">追加</button>
-  </form>  <div class="summary" id="summary"></div>
-  <div id="list"></div>  <script>
+  <h1>やりたい事リスト（タイムバケット）</h1>  <form id="ageForm">
+    <label for="birth">あなたの生年月日</label>
+    <input type="date" id="birth" required>
+    <button type="submit">年齢を保存</button>
+  </form>  <form id="form">
+    <label for="title">やりたいこと</label>
+    <input type="text" id="title" placeholder="例：家族で京都旅行" required><label for="category">ジャンル</label>
+<select id="category" required>
+  <option value="">選択してください</option>
+  <option value="旅行">✈️ 旅行</option>
+  <option value="学習">📘 学習</option>
+  <option value="健康">🏃 健康</option>
+  <option value="趣味">🎨 趣味</option>
+  <option value="副業">💼 副業</option>
+  <option value="その他">🔧 その他</option>
+</select>
+
+<label for="age">実行予定年齢</label>
+<input type="number" id="age" placeholder="例：50" required>
+
+<label for="hours">所要時間（時間）</label>
+<input type="number" id="hours" min="0.5" step="0.5" placeholder="例：3" required>
+
+<label for="deadline">期限（任意）</label>
+<input type="date" id="deadline">
+
+<label for="memo">メモ</label>
+<textarea id="memo" placeholder="費用目安、準備することなど"></textarea>
+
+<button type="submit">リストに追加</button>
+
+  </form>  <div class="summary-text" id="summary"></div>  <div class="bucket-section">
+    <details open>
+      <summary>🔥 今やるべき</summary>
+      <div id="now"></div>
+    </details>
+    <details>
+      <summary>💪 活動期（49〜55歳）</summary>
+      <div id="active"></div>
+    </details>
+    <details>
+      <summary>💼 後期（56〜65歳）</summary>
+      <div id="later"></div>
+    </details>
+    <details>
+      <summary>🧓 セカンドライフ（66歳〜）</summary>
+      <div id="old"></div>
+    </details>
+  </div>  <script>
+    const ageForm = document.getElementById("ageForm");
+    const birthInput = document.getElementById("birth");
     const form = document.getElementById("form");
-    const listEl = document.getElementById("list");
-    const summaryEl = document.getElementById("summary");
+    const summary = document.getElementById("summary");
+    const listAreas = {
+      now: document.getElementById("now"),
+      active: document.getElementById("active"),
+      later: document.getElementById("later"),
+      old: document.getElementById("old")
+    };
+
     let list = JSON.parse(localStorage.getItem("bucketList")) || [];
+    let birth = localStorage.getItem("birth") || "";
+
+    if (birth) birthInput.value = birth;
+
+    function getCurrentAge() {
+      if (!birth) return 0;
+      const b = new Date(birth);
+      const today = new Date();
+      let age = today.getFullYear() - b.getFullYear();
+      const m = today.getMonth() - b.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
+      return age;
+    }
+
+    function getBucketCategory(execAge) {
+      const currentAge = getCurrentAge();
+      if (execAge <= currentAge + 5) return "now";
+      if (execAge <= 55) return "active";
+      if (execAge <= 65) return "later";
+      return "old";
+    }
 
     function save() {
       localStorage.setItem("bucketList", JSON.stringify(list));
     }
 
     function render() {
-      listEl.innerHTML = "";
-      let totalHours = 0;
-      let doneHours = 0;
-      list.forEach((item, index) => {
+      Object.values(listAreas).forEach(el => el.innerHTML = "");
+      let total = 0, done = 0;
+
+      list.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = "item" + (item.done ? " done" : "");
         div.innerHTML = `
           <strong>${item.title}</strong><br>
           ジャンル: ${item.category}<br>
+          実行予定年齢: ${item.age}歳<br>
           所要時間: ${item.hours} 時間<br>
-          期限: ${item.deadline || "(未設定)"}<br>
+          期限: ${item.deadline || "未設定"}<br>
           メモ: ${item.memo || "なし"}
         `;
+
         const btns = document.createElement("div");
         btns.className = "buttons";
         const doneBtn = document.createElement("button");
         doneBtn.textContent = item.done ? "未完了に戻す" : "達成";
         doneBtn.onclick = () => {
-          list[index].done = !list[index].done;
-          save();
-          render();
+          list[i].done = !list[i].done;
+          save(); render();
         };
         const delBtn = document.createElement("button");
         delBtn.textContent = "削除";
         delBtn.onclick = () => {
-          if (confirm("本当に削除しますか？")) {
-            list.splice(index, 1);
-            save();
-            render();
+          if (confirm("削除してよいですか？")) {
+            list.splice(i, 1);
+            save(); render();
           }
         };
         btns.appendChild(doneBtn);
         btns.appendChild(delBtn);
         div.appendChild(btns);
-        listEl.appendChild(div);
 
-        totalHours += parseFloat(item.hours);
-        if (item.done) doneHours += parseFloat(item.hours);
+        const category = getBucketCategory(item.age);
+        listAreas[category].appendChild(div);
+
+        total += parseFloat(item.hours);
+        if (item.done) done += parseFloat(item.hours);
       });
-      summaryEl.textContent = `総時間: ${totalHours} 時間 ／ 達成済み: ${doneHours} 時間`;
+      summary.textContent = `総時間: ${total} 時間 ／ 達成済み: ${done} 時間`;
     }
+
+    ageForm.onsubmit = (e) => {
+      e.preventDefault();
+      birth = birthInput.value;
+      localStorage.setItem("birth", birth);
+      render();
+    };
 
     form.onsubmit = (e) => {
       e.preventDefault();
-      const newItem = {
+      const item = {
         title: form.title.value,
         category: form.category.value,
-        hours: form.hours.value,
+        age: parseInt(form.age.value),
+        hours: parseFloat(form.hours.value),
         deadline: form.deadline.value,
         memo: form.memo.value,
         done: false
       };
-      list.push(newItem);
+      list.push(item);
       save();
       render();
       form.reset();
