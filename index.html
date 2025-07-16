@@ -244,7 +244,7 @@
           const congrats = document.createElement("div");
           congrats.className = "congrats";
           const text = encodeURIComponent(
-            `${item.done ? `✅「${item.title}」達成！` : `📝「${item.title}」をやりたいことに追加！${item.age}歳でやる予定。`}\n\n#やりたいことリスト\n#タイムバケット`
+            `${item.done ? `✅「${item.title}」達成！` : `📝「${item.title}」をやりたいことに追加！${item.age}歳でやる予定。`}\n\n#やりたいことリスト\n#タイムバケット\nhttps://kkp-15.github.io/ninja-bucketlist/`
           );
           congrats.innerHTML = `🎉 ${item.done ? '達成おめでとうございます！' : '追加されました！'}<br><a href='https://twitter.com/intent/tweet?text=${text}' target='_blank'>📣 Xでシェア</a>`;
           div.appendChild(congrats);
