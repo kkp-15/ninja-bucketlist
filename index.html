@@ -54,7 +54,17 @@
     .buttons {
       margin-top: 0.5rem;
       display: flex;
+      flex-wrap: wrap;
       gap: 0.5rem;
+    }
+    .share-link {
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      display: inline-block;
+    }
+    .share-link a {
+      color: #1d9bf0;
+      text-decoration: none;
     }
     summary {
       font-weight: bold;
@@ -69,10 +79,27 @@
       font-weight: bold;
       margin-top: 1rem;
     }
+    .quote-box {
+      text-align: center;
+      font-style: italic;
+      margin-bottom: 1rem;
+      color: #555;
+    }
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    footer a {
+      color: #1d9bf0;
+      text-decoration: none;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <h1>やりたい事リスト（年代別バケット）</h1>  <form id="ageForm">
+  <h1>やりたい事リスト（年代別バケット）</h1>  <div class="quote-box" id="quoteBox"></div>  <form id="ageForm">
     <label for="birth">あなたの生年月日</label>
     <input type="date" id="birth" required>
     <button type="submit">年齢を保存</button>
@@ -103,7 +130,19 @@
 
 <button type="submit">リストに追加</button>
 
-  </form>  <div class="summary-text" id="summary"></div>  <div class="bucket-section" id="buckets"></div>  <script>
+  </form>  <div class="summary-text" id="summary"></div>
+  <div class="bucket-section" id="buckets"></div>  <footer>
+    <p>🕊 人生を彩るやりたいことリストを、あなたも一緒に。</p>
+    <p><a href="https://twitter.com/kkp_webninja" target="_blank">@kkp_webninja をフォロー</a><br><small>毎日ちょっとずつ夢に近づく。そのヒントをお届け。</small></p>
+  </footer>  <script>
+    const quotes = [
+      "一歩踏み出す勇気が、人生を変える。",
+      "夢は、逃げない。逃げるのはいつも自分だ。",
+      "今日やらなきゃ、明日もやらない。だから今やる。",
+      "やりたいことは、やった人が勝ち。"
+    ];
+    document.getElementById("quoteBox").textContent = quotes[Math.floor(Math.random() * quotes.length)];
+
     const ageForm = document.getElementById("ageForm");
     const birthInput = document.getElementById("birth");
     const form = document.getElementById("form");
@@ -156,7 +195,6 @@
       buckets.innerHTML = "";
       let total = 0, done = 0;
       const bucketItems = {};
-
       Object.keys(bucketLabels).forEach(k => bucketItems[k] = []);
 
       list.forEach((item, i) => {
@@ -177,19 +215,32 @@
         doneBtn.textContent = item.done ? "未完了に戻す" : "達成";
         doneBtn.onclick = () => {
           list[i].done = !list[i].done;
-          save(); render();
+          save();
+          render();
+          if (list[i].done) {
+            alert("🎉 おめでとうございます！達成お疲れ様でした！");
+          }
         };
         const delBtn = document.createElement("button");
         delBtn.textContent = "削除";
         delBtn.onclick = () => {
           if (confirm("削除してよいですか？")) {
             list.splice(i, 1);
-            save(); render();
+            save();
+            render();
           }
         };
         btns.appendChild(doneBtn);
         btns.appendChild(delBtn);
         div.appendChild(btns);
+
+        if (item.done) {
+          const text = encodeURIComponent(`✅「${item.title}」を達成しました！ありがとう！\n#やりたいことリスト #タイムバケット #達成報告 #感謝`);
+          const shareLink = document.createElement("div");
+          shareLink.className = "share-link";
+          shareLink.innerHTML = `<a href='https://twitter.com/intent/tweet?text=${text}' target='_blank'>📣 Xでシェア</a>`;
+          div.appendChild(shareLink);
+        }
 
         const bucket = getDecadeCategory(item.age);
         if (bucketItems[bucket]) bucketItems[bucket].push(div);
