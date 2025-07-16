@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="ja">
+<!DOCTYPE html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -104,13 +105,23 @@
   </style>
 </head>
 <body>
-  <h1>やりたい事リスト（ジャンル選択＋年代別）</h1>  <div class="quote-box" id="quoteBox"></div>  <div class="quick-form">
+  <h1>やりたい事リスト（ジャンル選択＋年代別）</h1>
+
+  <div class="quote-box" id="quoteBox"></div>
+
+  <div class="quick-form">
     <label for="quickTitle">やりたいこと（まずはこれだけでOK）</label>
     <input type="text" id="quickTitle" placeholder="例：屋久島に行く">
     <button onclick="quickAdd()">追加</button>
-  </div>  <div class="bucket-section" id="bucketList"></div>  <footer>
+  </div>
+
+  <div class="bucket-section" id="bucketList"></div>
+
+  <footer>
     <p><a href="https://twitter.com/kkp_webninja" target="_blank">@kkp_webninja をフォロー</a><br><small>毎日ちょっとずつ夢に近づくヒントをお届け</small></p>
-  </footer>  <script>
+  </footer>
+
+  <script>
     const quoteBox = document.getElementById("quoteBox");
     const quickTitle = document.getElementById("quickTitle");
     const bucketList = document.getElementById("bucketList");
@@ -167,65 +178,65 @@
               <label>ジャンル</label>
               <select onchange="updateField(${index}, 'category', this.value)">
                 <option value="">選択してください</option>
-                <option value="旅行">旅行</option>
-                <option value="仕事">仕事</option>
-                <option value="学び">学び</option>
-                <option value="健康">健康</option>
-                <option value="趣味">趣味</option>
-                <option value="家族">家族</option>
-                <option value="挑戦">挑戦</option>
+                <option value="旅行" ${item.category === "旅行" ? "selected" : ""}>旅行</option>
+                <option value="仕事" ${item.category === "仕事" ? "selected" : ""}>仕事</option>
+                <option value="学び" ${item.category === "学び" ? "selected" : ""}>学び</option>
+                <option value="健康" ${item.category === "健康" ? "selected" : ""}>健康</option>
+                <option value="趣味" ${item.category === "趣味" ? "selected" : ""}>趣味</option>
+                <option value="家族" ${item.category === "家族" ? "selected" : ""}>家族</option>
+                <option value="挑戦" ${item.category === "挑戦" ? "selected" : ""}>挑戦</option>
               </select><br>
               <label>予定年齢</label>
               <input type="number" value="${item.age}" onchange="updateField(${index}, 'age', this.value)"><br>
               <label>メモ</label>
-              <textarea onchange="updateField(${index}, 'memo', this.value)">${item.memo}</textarea><br><button onclick="hideEdit(${index})">閉じる</button>
-        </div>
-      `;
-      section.appendChild(div);
-      renderShareLink(index);
-    });
-    bucketList.appendChild(section);
-  });
-}
+              <textarea onchange="updateField(${index}, 'memo', this.value)">${item.memo}</textarea><br>
+              <button onclick="hideEdit(${index})">閉じる</button>
+            </div>
+          `;
+          section.appendChild(div);
+          renderShareLink(index);
+        });
+        bucketList.appendChild(section);
+      });
+    }
 
-function updateField(index, field, value) {
-  data[index][field] = value;
-  saveData();
-  render();
-}
+    function updateField(index, field, value) {
+      data[index][field] = value;
+      saveData();
+      render();
+    }
 
-function showEdit(index) {
-  document.getElementById("edit" + index).style.display = "block";
-}
-function hideEdit(index) {
-  document.getElementById("edit" + index).style.display = "none";
-}
+    function showEdit(index) {
+      document.getElementById("edit" + index).style.display = "block";
+    }
+    function hideEdit(index) {
+      document.getElementById("edit" + index).style.display = "none";
+    }
 
-function toggleDone(index) {
-  data[index].done = !data[index].done;
-  saveData();
-  render();
-}
+    function toggleDone(index) {
+      data[index].done = !data[index].done;
+      saveData();
+      render();
+    }
 
-function remove(index) {
-  if (confirm("本当に削除しますか？")) {
-    data.splice(index, 1);
-    saveData();
+    function remove(index) {
+      if (confirm("本当に削除しますか？")) {
+        data.splice(index, 1);
+        saveData();
+        render();
+      }
+    }
+
+    function renderShareLink(index) {
+      const item = data[index];
+      const shareDiv = document.getElementById("share" + index);
+      const text = encodeURIComponent(
+        `${item.done ? `✅「${item.title}」達成！` : `📝「${item.title}」をやりたいことに追加！`}\n\n#やりたいことリスト\n#タイムバケット\nhttps://kkp-15.github.io/ninja-bucketlist/`
+      );
+      shareDiv.innerHTML = `<a href="https://twitter.com/intent/tweet?text=${text}" target="_blank">Xでシェア</a>`;
+    }
+
     render();
-  }
-}
-
-function renderShareLink(index) {
-  const item = data[index];
-  const shareDiv = document.getElementById("share" + index);
-  const text = encodeURIComponent(
-    `${item.done ? `✅「${item.title}」達成！` : `📝「${item.title}」をやりたいことに追加！`}\n\n#やりたいことリスト\n#タイムバケット\nhttps://kkp-15.github.io/ninja-bucketlist/`
-  );
-  shareDiv.innerHTML = `<a href="https://twitter.com/intent/tweet?text=${text}" target="_blank">Xでシェア</a>`;
-}
-
-render();
-
   </script>
 </body>
 </html>
