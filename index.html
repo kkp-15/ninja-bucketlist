@@ -2,95 +2,230 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>タイムバケットリスト</title>
-  <link rel="stylesheet" href="style.css">
+  <title>やりたい事リスト（ジャンル選択＋年代別）</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background-color: #f0f8ff;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    form, .bucket-section, .quick-form {
+      max-width: 600px;
+      margin: 1rem auto;
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold;
+    }
+    input, textarea, select, button {
+      padding: 0.6rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 0.5rem;
+    }
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    .item {
+      background: #f9f9f9;
+      padding: 0.8rem;
+      margin-bottom: 0.5rem;
+      border-radius: 5px;
+      position: relative;
+    }
+    .item.done {
+      background: #d0ffd0;
+    }
+    .buttons {
+      margin-top: 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .share-link {
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      display: inline-block;
+    }
+    .share-link a {
+      color: #1d9bf0;
+      text-decoration: none;
+    }
+    .edit-form {
+      background: #eef9ff;
+      padding: 0.5rem;
+      border-radius: 5px;
+      margin-top: 0.5rem;
+    }
+    .quote-box {
+      text-align: center;
+      font-style: italic;
+      margin-bottom: 1rem;
+      color: #555;
+    }
+    details {
+      margin-bottom: 1rem;
+    }
+    summary {
+      font-weight: bold;
+      font-size: 1.1rem;
+      background-color: #e0f0ff;
+      padding: 0.5rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    footer a {
+      color: #1d9bf0;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <h1>タイムバケットでやりたいことを整理！</h1>  <form id="addForm">
-    <input type="text" id="title" placeholder="やりたいこと" required>
-    <input type="number" id="age" placeholder="達成したい年齢">
-    <input type="text" id="category" placeholder="ジャンル">
-    <textarea id="memo" placeholder="メモ（任意）"></textarea>
-    <button type="submit">追加</button>
-  </form>  <div id="list"></div>  <footer>
-    <p><a href="https://twitter.com/kkp_webninja" target="_blank">@kkp_webninja をフォロー</a></p>
+  <h1>やりたい事リスト（ジャンル選択＋年代別）</h1>  <div class="quote-box" id="quoteBox"></div>  <div class="quick-form">
+    <label for="quickTitle">やりたいこと（まずはこれだけでOK）</label>
+    <input type="text" id="quickTitle" placeholder="例：屋久島に行く">
+    <button onclick="quickAdd()">追加</button>
+  </div>  <div class="bucket-section" id="bucketList"></div>  <footer>
+    <p><a href="https://twitter.com/kkp_webninja" target="_blank">@kkp_webninja をフォロー</a><br><small>毎日ちょっとずつ夢に近づくヒントをお届け</small></p>
   </footer>  <script>
-    const form = document.getElementById('addForm');
-    const listContainer = document.getElementById('list');
-    let bucketData = JSON.parse(localStorage.getItem('bucketData') || '[]');
+    const quoteBox = document.getElementById("quoteBox");
+    const quickTitle = document.getElementById("quickTitle");
+    const bucketList = document.getElementById("bucketList");
+    const quotes = [
+      "やりたいことは、思いついた瞬間が一番熱い。",
+      "書き出すことで夢は一歩近づく。",
+      "思った時がタイミング。即追加！"
+    ];
+    quoteBox.textContent = quotes[Math.floor(Math.random() * quotes.length)];
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const title = document.getElementById('title').value.trim();
-      const age = document.getElementById('age').value.trim();
-      const category = document.getElementById('category').value.trim();
-      const memo = document.getElementById('memo').value.trim();
+    let data = JSON.parse(localStorage.getItem("bucketData") || "[]");
+
+    function saveData() {
+      localStorage.setItem("bucketData", JSON.stringify(data));
+    }
+
+    function quickAdd() {
+      const title = quickTitle.value.trim();
       if (!title) return;
-      bucketData.push({ title, age, category, memo, done: false });
-      localStorage.setItem('bucketData', JSON.stringify(bucketData));
-      form.reset();
-      renderList();
-    });
+      data.push({ title, category: "", age: "", memo: "", done: false });
+      saveData();
+      quickTitle.value = "";
+      render();
+    }
 
-    function renderList() {
-      listContainer.innerHTML = '';
+    function render() {
+      bucketList.innerHTML = "";
       const grouped = {};
-      bucketData.forEach((item, index) => {
-        const decade = item.age ? Math.floor(item.age / 10) * 10 : '未分類';
+      data.forEach((item, index) => {
+        const decade = item.age ? Math.floor(item.age / 10) * 10 : "未分類";
         if (!grouped[decade]) grouped[decade] = [];
         grouped[decade].push({ item, index });
       });
-      const sortedKeys = Object.keys(grouped).sort((a, b) => a === '未分類' ? 1 : b === '未分類' ? -1 : a - b);
-      sortedKeys.forEach(decade => {
-        const section = document.createElement('details');
+      const sortedKeys = Object.keys(grouped).sort((a, b) => (a === "未分類" ? 1 : b === "未分類" ? -1 : a - b));
+      sortedKeys.forEach((decade) => {
+        const section = document.createElement("details");
         section.open = true;
         section.innerHTML = `<summary>${decade}代（${grouped[decade].length}件）</summary>`;
         grouped[decade].forEach(({ item, index }) => {
-          const div = document.createElement('div');
-          div.className = 'item' + (item.done ? ' done' : '');
+          const div = document.createElement("div");
+          div.className = "item" + (item.done ? " done" : "");
           div.innerHTML = `
             <strong>${item.title}</strong><br>
-            ${item.category ? `ジャンル：${item.category}<br>` : ''}
-            ${item.age ? `予定年齢：${item.age}歳<br>` : ''}
-            ${item.memo ? `メモ：${item.memo}<br>` : ''}
-            <button onclick="toggleDone(${index})">${item.done ? '未達成に戻す' : '✅ 達成'}</button>
-            <button onclick="editItem(${index})">🖋 編集</button>
-            <button onclick="deleteItem(${index})">🗑 削除</button>
-          `;
-          section.appendChild(div);
-        });
-        listContainer.appendChild(section);
-      });
-    }
+            ${item.category ? `ジャンル：${item.category}<br>` : ""}
+            ${item.age ? `予定年齢：${item.age}歳<br>` : ""}
+            ${item.memo ? `メモ：${item.memo}<br>` : ""}
+            <div class="buttons">
+              <button onclick="toggleDone(${index})">${item.done ? "未達成に戻す" : "✅ 達成"}</button>
+              <button onclick="showEdit(${index})">🖋 編集</button>
+              <button onclick="remove(${index})">🗑 削除</button>
+            </div>
+            <div class="share-link" id="share${index}"></div>
+            <div class="edit-form" id="edit${index}" style="display:none">
+              <label>ジャンル</label>
+              <select onchange="updateField(${index}, 'category', this.value)">
+                <option value="">選択してください</option>
+                <option value="旅行">旅行</option>
+                <option value="仕事">仕事</option>
+                <option value="学び">学び</option>
+                <option value="健康">健康</option>
+                <option value="趣味">趣味</option>
+                <option value="家族">家族</option>
+                <option value="挑戦">挑戦</option>
+              </select><br>
+              <label>予定年齢</label>
+              <input type="number" value="${item.age}" onchange="updateField(${index}, 'age', this.value)"><br>
+              <label>メモ</label>
+              <textarea onchange="updateField(${index}, 'memo', this.value)">${item.memo}</textarea><br><button onclick="hideEdit(${index})">閉じる</button>
+        </div>
+      `;
+      section.appendChild(div);
+      renderShareLink(index);
+    });
+    bucketList.appendChild(section);
+  });
+}
 
-    function toggleDone(index) {
-      bucketData[index].done = !bucketData[index].done;
-      localStorage.setItem('bucketData', JSON.stringify(bucketData));
-      renderList();
-    }
+function updateField(index, field, value) {
+  data[index][field] = value;
+  saveData();
+  render();
+}
 
-    function deleteItem(index) {
-      if (confirm('削除してもよいですか？')) {
-        bucketData.splice(index, 1);
-        localStorage.setItem('bucketData', JSON.stringify(bucketData));
-        renderList();
-      }
-    }
+function showEdit(index) {
+  document.getElementById("edit" + index).style.display = "block";
+}
+function hideEdit(index) {
+  document.getElementById("edit" + index).style.display = "none";
+}
 
-    function editItem(index) {
-      const item = bucketData[index];
-      const newTitle = prompt('やりたいことを修正', item.title);
-      if (newTitle !== null) item.title = newTitle;
-      const newAge = prompt('達成したい年齢を修正', item.age);
-      if (newAge !== null) item.age = newAge;
-      const newCategory = prompt('ジャンルを修正', item.category);
-      if (newCategory !== null) item.category = newCategory;
-      const newMemo = prompt('メモを修正', item.memo);
-      if (newMemo !== null) item.memo = newMemo;
-      localStorage.setItem('bucketData', JSON.stringify(bucketData));
-      renderList();
-    }
+function toggleDone(index) {
+  data[index].done = !data[index].done;
+  saveData();
+  render();
+}
 
-    renderList();
-  </script></body>
+function remove(index) {
+  if (confirm("本当に削除しますか？")) {
+    data.splice(index, 1);
+    saveData();
+    render();
+  }
+}
+
+function renderShareLink(index) {
+  const item = data[index];
+  const shareDiv = document.getElementById("share" + index);
+  const text = encodeURIComponent(
+    `${item.done ? `✅「${item.title}」達成！` : `📝「${item.title}」をやりたいことに追加！`}\n\n#やりたいことリスト\n#タイムバケット\nhttps://kkp-15.github.io/ninja-bucketlist/`
+  );
+  shareDiv.innerHTML = `<a href="https://twitter.com/intent/tweet?text=${text}" target="_blank">Xでシェア</a>`;
+}
+
+render();
+
+  </script>
+</body>
 </html>
