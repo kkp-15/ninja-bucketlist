@@ -127,9 +127,6 @@
 <label for="age">実行予定年齢</label>
 <input type="number" id="age" placeholder="例：50" required>
 
-<label for="hours">所要時間（時間）</label>
-<input type="number" id="hours" min="0.5" step="0.5" placeholder="例：3" required>
-
 <label for="deadline">期限（任意）</label>
 <input type="date" id="deadline">
 
@@ -201,7 +198,6 @@
 
     function render(scrollY = null) {
       buckets.innerHTML = "";
-      let total = 0, done = 0;
       const bucketItems = {};
       Object.keys(bucketLabels).forEach(k => bucketItems[k] = []);
 
@@ -212,7 +208,6 @@
           <strong>${item.title}</strong><br>
           ジャンル: ${item.category}<br>
           実行予定年齢: ${item.age}歳<br>
-          所要時間: ${item.hours} 時間<br>
           期限: ${item.deadline || "未設定"}<br>
           メモ: ${item.memo || "なし"}
         `;
@@ -252,9 +247,6 @@
 
         const bucket = getDecadeCategory(item.age);
         if (bucketItems[bucket]) bucketItems[bucket].push(div);
-
-        total += parseFloat(item.hours);
-        if (item.done) done += parseFloat(item.hours);
       });
 
       Object.keys(bucketLabels).forEach(key => {
@@ -266,7 +258,7 @@
         }
       });
 
-      summary.textContent = `総時間: ${total} 時間 ／ 達成済み: ${done} 時間`;
+      summary.textContent = "";
 
       if (scrollY !== null) {
         window.scrollTo(0, scrollY);
@@ -291,7 +283,6 @@
         title: form.title.value.trim(),
         category: form.category.value,
         age: execAge,
-        hours: parseFloat(form.hours.value),
         deadline: form.deadline.value,
         memo: form.memo.value,
         done: false
