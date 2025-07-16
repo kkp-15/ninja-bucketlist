@@ -157,6 +157,7 @@
     let list = JSON.parse(localStorage.getItem("bucketList")) || [];
     let birth = localStorage.getItem("birth") || "";
     if (birth) birthInput.value = birth;
+    let lastAddedBucket = null;
 
     function getCurrentAge() {
       if (!birth) return 0;
@@ -200,6 +201,7 @@
       buckets.innerHTML = "";
       const bucketItems = {};
       Object.keys(bucketLabels).forEach(k => bucketItems[k] = []);
+      const bucketElements = {};
 
       list.forEach((item, i) => {
         const div = document.createElement("div");
@@ -254,6 +256,11 @@
           const details = document.createElement("details");
           details.innerHTML = `<summary>${bucketLabels[key]}（${bucketItems[key].length}件）</summary>`;
           bucketItems[key].forEach(el => details.appendChild(el));
+          if (lastAddedBucket === key) {
+            details.open = true;
+            setTimeout(() => details.scrollIntoView({ behavior: "smooth" }), 100);
+          }
+          bucketElements[key] = details;
           buckets.appendChild(details);
         }
       });
@@ -288,8 +295,9 @@
         done: false
       };
       list.push(item);
+      lastAddedBucket = getDecadeCategory(execAge);
       save();
-      render(window.scrollY);
+      render();
       form.reset();
     };
 
