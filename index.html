@@ -46,6 +46,7 @@
       background: #e0f0ff;
       padding: 0.5rem;
       border-radius: 5px;
+      cursor: pointer;
     }
     .item {
       background: #f9f9f9;
@@ -85,11 +86,6 @@
       margin-top: 2rem;
       color: #666;
     }
-    .footer a {
-      text-decoration: none;
-      color: #007acc;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
@@ -109,10 +105,11 @@
       <button onclick="closeModal()">キャンセル</button>
     </div>
   </div>  <div class="footer">
-    📱 忍者のX → <a href="https://x.com/kkp_webninja" target="_blank">@kkp_webninja</a>
+    @kkp_webninja
   </div>  <script>
     let data = JSON.parse(localStorage.getItem("bucketData") || "[]");
     let editIndex = null;
+    let lastAddedKey = null;
 
     function addItem() {
       const title = document.getElementById("title").value.trim();
@@ -129,6 +126,8 @@
       document.getElementById("title").value = "";
       document.getElementById("age").value = "";
       document.getElementById("memo").value = "";
+
+      lastAddedKey = age !== null ? `${Math.floor(age / 10) * 10}` : "未分類";
       render();
     }
 
@@ -197,7 +196,7 @@
 
       sortedKeys.forEach(key => {
         const section = document.createElement("details");
-        section.open = true;
+        section.open = key === lastAddedKey;
         section.innerHTML = `<summary>${key === "未分類" ? "未分類" : key + "代"}（${grouped[key].length}件）</summary>`;
         grouped[key].sort((a, b) => (a.item.age || 999) - (b.item.age || 999));
         grouped[key].forEach(({ item, index }) => {
@@ -217,6 +216,7 @@
         });
         bucket.appendChild(section);
       });
+      lastAddedKey = null;
     }
 
     render();
