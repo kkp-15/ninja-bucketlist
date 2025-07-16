@@ -109,6 +109,7 @@
     let data = JSON.parse(localStorage.getItem("bucketData") || "[]");
     let editIndex = null;
     let lastAddedKey = null;
+    let lastFocusedIndex = null;
 
     function addItem() {
       const title = document.getElementById("title").value.trim();
@@ -127,12 +128,14 @@
       document.getElementById("memo").value = "";
 
       lastAddedKey = age !== null ? `${Math.floor(age / 10) * 10}` : "未分類";
+      lastFocusedIndex = data.length - 1;
       render();
     }
 
     function toggleDone(index) {
       data[index].done = !data[index].done;
       localStorage.setItem("bucketData", JSON.stringify(data));
+      lastFocusedIndex = index;
       render();
     }
 
@@ -158,6 +161,7 @@
         data[editIndex].age = isNaN(newAge) ? null : newAge;
         data[editIndex].memo = newMemo;
         localStorage.setItem("bucketData", JSON.stringify(data));
+        lastFocusedIndex = editIndex;
         render();
         closeModal();
       }
@@ -201,8 +205,10 @@
         grouped[key].forEach(({ item, index }) => {
           const div = document.createElement("div");
           div.className = "item" + (item.done ? " done" : "");
+          div.id = `item-${index}`;
           div.innerHTML = `
             <strong>${item.title}</strong><br>
+            <small>年齢：${item.age !== null ? item.age : "未設定"}</small><br>
             ${item.memo ? `<small>メモ：${item.memo}</small><br>` : ""}
             <div class="actions">
               <button onclick="toggleDone(${index})">${item.done ? "未達成に戻す" : "達成"}</button>
@@ -215,6 +221,13 @@
         });
         bucket.appendChild(section);
       });
+
+      if (lastFocusedIndex !== null) {
+        const el = document.getElementById(`item-${lastFocusedIndex}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        lastFocusedIndex = null;
+      }
+
       lastAddedKey = null;
     }
 
