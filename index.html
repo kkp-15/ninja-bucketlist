@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>やりたい事リスト - タイムバケット</title>
+  <title>やりたい事リスト - 年代別バケット</title>
   <style>
     body {
       font-family: sans-serif;
@@ -60,6 +60,9 @@
       font-weight: bold;
       font-size: 1.1rem;
       cursor: pointer;
+      padding: 0.5rem;
+      background-color: #e0f0ff;
+      border-radius: 5px;
     }
     .summary-text {
       text-align: center;
@@ -69,7 +72,7 @@
   </style>
 </head>
 <body>
-  <h1>やりたい事リスト（タイムバケット）</h1>  <form id="ageForm">
+  <h1>やりたい事リスト（年代別バケット）</h1>  <form id="ageForm">
     <label for="birth">あなたの生年月日</label>
     <input type="date" id="birth" required>
     <button type="submit">年齢を保存</button>
@@ -100,38 +103,15 @@
 
 <button type="submit">リストに追加</button>
 
-  </form>  <div class="summary-text" id="summary"></div>  <div class="bucket-section">
-    <details open>
-      <summary>🔥 今やるべき</summary>
-      <div id="now"></div>
-    </details>
-    <details>
-      <summary>💪 活動期（49〜55歳）</summary>
-      <div id="active"></div>
-    </details>
-    <details>
-      <summary>💼 後期（56〜65歳）</summary>
-      <div id="later"></div>
-    </details>
-    <details>
-      <summary>🧓 セカンドライフ（66歳〜）</summary>
-      <div id="old"></div>
-    </details>
-  </div>  <script>
+  </form>  <div class="summary-text" id="summary"></div>  <div class="bucket-section" id="buckets"></div>  <script>
     const ageForm = document.getElementById("ageForm");
     const birthInput = document.getElementById("birth");
     const form = document.getElementById("form");
     const summary = document.getElementById("summary");
-    const listAreas = {
-      now: document.getElementById("now"),
-      active: document.getElementById("active"),
-      later: document.getElementById("later"),
-      old: document.getElementById("old")
-    };
+    const buckets = document.getElementById("buckets");
 
     let list = JSON.parse(localStorage.getItem("bucketList")) || [];
     let birth = localStorage.getItem("birth") || "";
-
     if (birth) birthInput.value = birth;
 
     function getCurrentAge() {
@@ -144,21 +124,40 @@
       return age;
     }
 
-    function getBucketCategory(execAge) {
-      const currentAge = getCurrentAge();
-      if (execAge <= currentAge + 5) return "now";
-      if (execAge <= 55) return "active";
-      if (execAge <= 65) return "later";
-      return "old";
+    function getDecadeCategory(execAge) {
+      if (execAge < 20) return 'teen';
+      if (execAge < 30) return 'twenty';
+      if (execAge < 40) return 'thirty';
+      if (execAge < 50) return 'forty';
+      if (execAge < 60) return 'fifty';
+      if (execAge < 70) return 'sixty';
+      if (execAge < 80) return 'seventy';
+      if (execAge < 90) return 'eighty';
+      return 'ninety';
     }
+
+    const bucketLabels = {
+      teen: "👶 10代",
+      twenty: "🧑 20代",
+      thirty: "👨 30代",
+      forty: "👔 40代",
+      fifty: "🧓 50代",
+      sixty: "👴 60代",
+      seventy: "🛫 70代",
+      eighty: "💬 80代",
+      ninety: "🕊 90代〜"
+    };
 
     function save() {
       localStorage.setItem("bucketList", JSON.stringify(list));
     }
 
     function render() {
-      Object.values(listAreas).forEach(el => el.innerHTML = "");
+      buckets.innerHTML = "";
       let total = 0, done = 0;
+      const bucketItems = {};
+
+      Object.keys(bucketLabels).forEach(k => bucketItems[k] = []);
 
       list.forEach((item, i) => {
         const div = document.createElement("div");
@@ -192,12 +191,22 @@
         btns.appendChild(delBtn);
         div.appendChild(btns);
 
-        const category = getBucketCategory(item.age);
-        listAreas[category].appendChild(div);
+        const bucket = getDecadeCategory(item.age);
+        if (bucketItems[bucket]) bucketItems[bucket].push(div);
 
         total += parseFloat(item.hours);
         if (item.done) done += parseFloat(item.hours);
       });
+
+      Object.keys(bucketLabels).forEach(key => {
+        if (bucketItems[key].length > 0) {
+          const details = document.createElement("details");
+          details.innerHTML = `<summary>${bucketLabels[key]}（${bucketItems[key].length}件）</summary>`;
+          bucketItems[key].forEach(el => details.appendChild(el));
+          buckets.appendChild(details);
+        }
+      });
+
       summary.textContent = `総時間: ${total} 時間 ／ 達成済み: ${done} 時間`;
     }
 
@@ -210,10 +219,15 @@
 
     form.onsubmit = (e) => {
       e.preventDefault();
+      const execAge = parseInt(form.age.value);
+      if (isNaN(execAge)) {
+        alert("実行予定年齢を正しく入力してください");
+        return;
+      }
       const item = {
-        title: form.title.value,
+        title: form.title.value.trim(),
         category: form.category.value,
-        age: parseInt(form.age.value),
+        age: execAge,
         hours: parseFloat(form.hours.value),
         deadline: form.deadline.value,
         memo: form.memo.value,
