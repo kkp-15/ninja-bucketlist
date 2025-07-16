@@ -61,6 +61,35 @@
       width: auto;
       margin-right: 5px;
     }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      color: #666;
+    }
+    .footer a {
+      text-decoration: none;
+      color: #007acc;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -70,8 +99,20 @@
     <input type="number" id="age" placeholder="やる年齢（例: 35）">
     <textarea id="memo" placeholder="その他メモ（任意）"></textarea>
     <button type="submit">追加</button>
-  </form>  <div id="bucket"></div>  <script>
+  </form>  <div id="bucket"></div>  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h3>リストを編集</h3>
+      <input type="text" id="editTitle" placeholder="やりたいこと">
+      <input type="number" id="editAge" placeholder="やる年齢">
+      <textarea id="editMemo" placeholder="メモ"></textarea>
+      <button onclick="saveEdit()">保存</button>
+      <button onclick="closeModal()">キャンセル</button>
+    </div>
+  </div>  <div class="footer">
+    📱 忍者のX → <a href="https://x.com/kkp_webninja" target="_blank">@kkp_webninja</a>
+  </div>  <script>
     let data = JSON.parse(localStorage.getItem("bucketData") || "[]");
+    let editIndex = null;
 
     function addItem() {
       const title = document.getElementById("title").value.trim();
@@ -97,15 +138,31 @@
       render();
     }
 
-    function editItem(index) {
-      const newTitle = prompt("新しいタイトルを入力してください：", data[index].title);
-      if (newTitle !== null) data[index].title = newTitle;
-      const newAge = prompt("やる年齢を入力してください：", data[index].age);
-      if (newAge !== null && !isNaN(newAge)) data[index].age = parseInt(newAge);
-      const newMemo = prompt("メモを編集してください：", data[index].memo);
-      if (newMemo !== null) data[index].memo = newMemo;
-      localStorage.setItem("bucketData", JSON.stringify(data));
-      render();
+    function openEdit(index) {
+      editIndex = index;
+      const item = data[index];
+      document.getElementById("editTitle").value = item.title;
+      document.getElementById("editAge").value = item.age ?? "";
+      document.getElementById("editMemo").value = item.memo ?? "";
+      document.getElementById("editModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("editModal").style.display = "none";
+    }
+
+    function saveEdit() {
+      const newTitle = document.getElementById("editTitle").value.trim();
+      const newAge = parseInt(document.getElementById("editAge").value);
+      const newMemo = document.getElementById("editMemo").value.trim();
+      if (editIndex !== null && newTitle) {
+        data[editIndex].title = newTitle;
+        data[editIndex].age = isNaN(newAge) ? null : newAge;
+        data[editIndex].memo = newMemo;
+        localStorage.setItem("bucketData", JSON.stringify(data));
+        render();
+        closeModal();
+      }
     }
 
     function deleteItem(index) {
@@ -151,7 +208,7 @@
             ${item.memo ? `<small>メモ：${item.memo}</small><br>` : ""}
             <div class="actions">
               <button onclick="toggleDone(${index})">${item.done ? "未達成に戻す" : "達成"}</button>
-              <button onclick="editItem(${index})">編集</button>
+              <button onclick="openEdit(${index})">編集</button>
               <button onclick="deleteItem(${index})">削除</button>
               <button onclick='shareItem(data[${index}])'>シェア</button>
             </div>
