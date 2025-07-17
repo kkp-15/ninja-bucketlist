@@ -3,6 +3,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>タイムバケットリスト</title>
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LM85GJN0L"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-2LM85GJN0L'); // ← 測定IDをここに入れてください
+  </script>
   <style>
     body {
       font-family: sans-serif;
@@ -143,7 +151,7 @@
     }
 
     function deleteItem(index) {
-      if (confirm("この項目を削除しますか？")) {
+      if (confirm("この項目を本当に削除しますか？")) {
         data.splice(index, 1);
         localStorage.setItem("bucketData", JSON.stringify(data));
         render();
