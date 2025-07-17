@@ -3,179 +3,156 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>タイムバケットリスト</title>
-  <!-- Google Analytics -->
+  <meta name="description" content="年代別にやりたいことを整理・管理できるタイムバケットリスト">
+  <meta name="author" content="@kkp_webninja">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LM85GJN0L"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-2LM85GJN0L'); // ← 測定IDをここに入れてください
+    gtag('config', 'G-2LM85GJN0L');
   </script>
   <style>
     body {
       font-family: sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 1rem;
-    }
-    h1 {
+      background: #f8fbff;
       text-align: center;
-    }
-    form, .bucket {
-      max-width: 600px;
-      margin: 1rem auto;
-      background: white;
       padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    input, textarea, button {
-      width: 100%;
-      margin: 0.5rem 0;
-      padding: 0.6rem;
+    input, textarea {
+      padding: 0.5rem;
+      margin: 0.3rem;
+      width: 90%;
+      max-width: 400px;
       font-size: 1rem;
-      border-radius: 5px;
-      border: 1px solid #ccc;
     }
     button {
-      background: #007acc;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #005fa3;
-    }
-    details {
-      margin-top: 1rem;
-    }
-    summary {
-      font-weight: bold;
-      background: #e0f0ff;
-      padding: 0.5rem;
-      border-radius: 5px;
+      padding: 0.4rem 1rem;
+      margin: 0.2rem;
+      font-size: 1rem;
       cursor: pointer;
     }
     .item {
-      background: #f9f9f9;
-      padding: 0.5rem;
-      margin: 0.5rem 0;
-      border-radius: 5px;
+      background: white;
+      padding: 1rem;
+      margin: 0.5rem auto;
+      max-width: 500px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .item.done {
-      background: #cce5cc;
-      text-decoration: line-through;
+    summary {
+      font-weight: bold;
+      cursor: pointer;
+      background: #e5f1ff;
+      padding: 0.6rem;
+      border-radius: 5px;
+      margin-top: 1rem;
     }
     .actions button {
-      width: auto;
-      margin-right: 5px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
     }
-    .edit-form {
-      background: #f0f8ff;
-      padding: 0.5rem;
-      margin-top: 0.5rem;
-      border-radius: 5px;
+    .actions button:hover {
+      opacity: 0.9;
+    }
+    #follow {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    #follow a {
+      text-decoration: none;
+      font-weight: bold;
+      color: #007bff;
     }
   </style>
 </head>
 <body>
   <h1>タイムバケットリスト</h1>
-  <form onsubmit="addItem(); return false;">
-    <input type="text" id="title" placeholder="やりたいこと" required>
-    <input type="number" id="age" placeholder="やる年齢（例: 35）">
-    <textarea id="memo" placeholder="その他メモ（任意）"></textarea>
-    <button type="submit">追加</button>
-  </form>  <div id="bucket"></div>  <div style="text-align: center; margin-top: 40px;">
-    <a href="https://x.com/kkp_webninja" target="_blank"
-       style="display: inline-block; padding: 10px 20px; background-color: #1da1f2; color: white;
-       border-radius: 999px; text-decoration: none; font-weight: bold;">
-      情報の巻物はこちら → @kkp_webninja
-    </a>
+  <input id="title" placeholder="やりたいこと">
+  <input id="age" placeholder="やる年齢（例: 35）">
+  <textarea id="memo" placeholder="その他メモ（任意）"></textarea>
+  <button onclick="addItem()">追加</button>  <div id="bucket"></div>  <div id="follow">
+    情報の巻物 → <a href="https://x.com/kkp_webninja" target="_blank">@kkp_webninja</a>
   </div>  <script>
     let data = JSON.parse(localStorage.getItem("bucketData") || "[]");
     let lastAddedKey = null;
-    let lastFocusedIndex = null;
     let editIndex = null;
-    let openBucketKey = null;
 
     function addItem() {
       const title = document.getElementById("title").value.trim();
-      const ageInput = document.getElementById("age").value.trim();
+      const age = parseInt(document.getElementById("age").value);
       const memo = document.getElementById("memo").value.trim();
-
-      let age = null;
-      if (ageInput !== "" && !isNaN(ageInput)) {
-        age = parseInt(ageInput);
-      }
-
-      data.push({ title, age, memo, done: false });
+      if (!title) return;
+      const item = {
+        title,
+        age: isNaN(age) ? 999 : age,
+        memo,
+        done: false
+      };
+      data.push(item);
       localStorage.setItem("bucketData", JSON.stringify(data));
       document.getElementById("title").value = "";
       document.getElementById("age").value = "";
       document.getElementById("memo").value = "";
-
-      lastAddedKey = age !== null ? `${Math.floor(age / 10) * 10}` : "未分類";
-      lastFocusedIndex = data.length - 1;
-      openBucketKey = lastAddedKey;
+      lastAddedKey = getGroupKey(item.age);
       render();
     }
 
     function toggleDone(index) {
       data[index].done = !data[index].done;
       localStorage.setItem("bucketData", JSON.stringify(data));
-      lastFocusedIndex = index;
-      openBucketKey = getKeyFromAge(data[index].age);
       render();
-    }
-
-    function startEdit(index) {
-      editIndex = index;
-      openBucketKey = getKeyFromAge(data[index].age);
-      render();
-    }
-
-    function saveEdit(index) {
-      const newTitle = document.getElementById("edit-title-" + index).value.trim();
-      const newAge = parseInt(document.getElementById("edit-age-" + index).value);
-      const newMemo = document.getElementById("edit-memo-" + index).value.trim();
-      if (newTitle) {
-        data[index].title = newTitle;
-        data[index].age = isNaN(newAge) ? null : newAge;
-        data[index].memo = newMemo;
-        localStorage.setItem("bucketData", JSON.stringify(data));
-        lastFocusedIndex = index;
-        editIndex = null;
-        openBucketKey = getKeyFromAge(data[index].age);
-        render();
-      }
     }
 
     function deleteItem(index) {
-      if (confirm("この項目を本当に削除しますか？")) {
-        data.splice(index, 1);
-        localStorage.setItem("bucketData", JSON.stringify(data));
-        render();
-      }
+      data.splice(index, 1);
+      localStorage.setItem("bucketData", JSON.stringify(data));
+      render();
     }
 
-    function shareItem(item) {
-      const text = `やりたいこと：${item.title}\n${item.memo ? `メモ：${item.memo}\n` : ""}年齢：${item.age !== null ? item.age : "未設定"}\n\n#タイムバケット\n#やりたいことリスト\n\nhttps://kkp-15.github.io/ninja-bucketlist/`;
+    function editItem(index) {
+      const newTitle = prompt("やりたいことを編集：", data[index].title);
+      if (newTitle !== null) data[index].title = newTitle;
+      const newAge = prompt("年齢を編集（例: 35）：", data[index].age);
+      data[index].age = parseInt(newAge) || 999;
+      const newMemo = prompt("メモを編集：", data[index].memo);
+      if (newMemo !== null) data[index].memo = newMemo;
+      localStorage.setItem("bucketData", JSON.stringify(data));
+      lastAddedKey = getGroupKey(data[index].age);
+      render();
+    }
+
+    function shareItem(index) {
+      const item = data[index];
+      const text = `
+#タイムバケット
+#やりたいことリスト
+
+✅ ${item.title}
+年齢: ${item.age}
+${item.memo ? "メモ: " + item.memo + "\n" : ""}
+
+https://kkp-15.github.io/ninja-bucketlist/
+      `.trim();
       const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
+      window.open(url, "_blank");
     }
 
-    function getKeyFromAge(age) {
-      return age !== null ? `${Math.floor(age / 10) * 10}` : "未分類";
+    function getGroupKey(age) {
+      return age === 999 ? "未分類" : `${Math.floor(age / 10) * 10}代`;
     }
 
     function render() {
       const bucket = document.getElementById("bucket");
       bucket.innerHTML = "";
       const grouped = {};
-      data.forEach((item, i) => {
-        const key = getKeyFromAge(item.age);
+      data.forEach((item, index) => {
+        const key = getGroupKey(item.age);
         if (!grouped[key]) grouped[key] = [];
-        grouped[key].push({ item, index: i });
+        grouped[key].push({ ...item, index });
       });
 
       const sortedKeys = Object.keys(grouped).sort((a, b) => {
@@ -184,53 +161,31 @@
         return parseInt(a) - parseInt(b);
       });
 
-      sortedKeys.forEach(key => {
+      sortedKeys.forEach((key) => {
         const section = document.createElement("details");
-        section.open = key === openBucketKey;
-        section.innerHTML = `<summary>${key === "未分類" ? "未分類" : key + "代"}（${grouped[key].length}件）</summary>`;
-        grouped[key].sort((a, b) => (a.item.age || 999) - (b.item.age || 999));
-        grouped[key].forEach(({ item, index }) => {
+        section.open = key === lastAddedKey;
+        section.innerHTML = `<summary>${key}（${grouped[key].length}件）</summary>`;
+        grouped[key].sort((a, b) => (a.age || 999) - (b.age || 999));
+        grouped[key].forEach(({ title, age, memo, done, index }) => {
           const div = document.createElement("div");
-          div.className = "item" + (item.done ? " done" : "");
-          div.id = `item-${index}`;
+          div.className = "item";
+          div.innerHTML = `
+            <strong>${title}</strong><br>
+            年齢：${age}<br>
+            メモ：<small>${memo}</small><br>
+            <div class="actions">
+              <button onclick="toggleDone(${index})">${done ? "未達成に戻す" : "達成"}</button>
+              <button onclick="editItem(${index})">編集</button>
+              <button onclick="deleteItem(${index})">削除</button>
+              <button onclick="shareItem(${index})">シェア</button>
+            </div>
+          `;
+          section.appendChild(div);
+        });
+        bucket.appendChild(section);
+      });
+    }
 
-          if (editIndex === index) {
-            div.innerHTML = `
-              <div class="edit-form">
-                <input id="edit-title-${index}" value="${item.title}">
-                <input type="number" id="edit-age-${index}" value="${item.age ?? ''}">
-                <textarea id="edit-memo-${index}">${item.memo ?? ''}</textarea><button onclick="saveEdit(${index})">保存</button>
-          </div>
-        `;
-      } else {
-        div.innerHTML = `
-          <strong>${item.title}</strong><br>
-          <small>年齢：${item.age !== null ? item.age : "未設定"}</small><br>
-          ${item.memo ? `<small>メモ：${item.memo}</small><br>` : ""}
-          <div class="actions">
-            <button onclick="toggleDone(${index})">${item.done ? "未達成に戻す" : "達成"}</button>
-            <button onclick="startEdit(${index})">編集</button>
-            <button onclick="deleteItem(${index})">削除</button>
-            <button onclick='shareItem(data[${index}])'>シェア</button>
-          </div>
-        `;
-      }
-      section.appendChild(div);
-    });
-    bucket.appendChild(section);
-  });
-
-  if (lastFocusedIndex !== null) {
-    const el = document.getElementById(`item-${lastFocusedIndex}`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-    lastFocusedIndex = null;
-  }
-
-  lastAddedKey = null;
-}
-
-render();
-
-  </script>
-</body>
+    render();
+  </script></body>
 </html>
